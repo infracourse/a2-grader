@@ -1,22 +1,20 @@
 package main
 
 import (
-	"archive/zip"
 	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
 	"log"
 	"net/http"
 	"os"
-	"path/filepath"
 
 	"github.com/go-git/go-git/v5"
+	"github.com/mholt/archiver/v4"
 	"github.com/open-policy-agent/opa/rego"
 )
 
-const LAMBDA_GATEWAY_URI = "https://grading.management.infracourse.cloud/a2-synth"
+const LAMBDA_GATEWAY_URI = "https://grading.management.infracourse.cloud/a2-synth/"
 
 func makeSubmissionZip() ([]byte, error) {
 	err := os.Chdir("/autograder/submission")
@@ -32,51 +30,25 @@ func makeSubmissionZip() ([]byte, error) {
 		return nil, err
 	}
 
-	err = os.MkdirAll("app", 0777)
+	_, err = git.PlainClone("/autograder/submission/app", false, &git.CloneOptions{
+		URL: "https://github.com/infracourse/yoctogram-app.git",
+	})
 	if err != nil {
 		log.Println(err)
 		return nil, err
 	}
 
-	// create zip writer
-	buf := &bytes.Buffer{}
-	zipWriter := zip.NewWriter(buf)
-	defer zipWriter.Close()
-
-	err = filepath.Walk(".", func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			log.Println(err)
-			return err
-		}
-
-		if info.IsDir() {
-			_, err = zipWriter.Create(fmt.Sprintf("%s%c", path, os.PathSeparator))
-			return err
-		}
-
-		// copy file to zip file writer
-		file, err := os.Open(path)
-		if err != nil {
-			log.Println(err)
-			return err
-		}
-		defer file.Close()
-
-		writer, err := zipWriter.Create(path)
-		if err != nil {
-			log.Println(err)
-			return err
-		}
-
-		_, err = io.Copy(writer, file)
-		if err != nil {
-			log.Println(err)
-			return err
-		}
-
-		return nil
+	files, err := archiver.FilesFromDisk(nil, map[string]string{
+		".": "",
 	})
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
 
+	buf := &bytes.Buffer{}
+	format := archiver.Zip{}
+	err = format.Archive(context.TODO(), buf, files)
 	if err != nil {
 		log.Println(err)
 		return nil, err
@@ -89,15 +61,24 @@ type LambdaRequest struct {
 	File []byte
 }
 
-func getCfnResources(lambdaGatewayURI string, submissionZip []byte) (map[string]string, error) {
-	resp, err := http.Post(lambdaGatewayURI, "application/json", bytes.NewBuffer(submissionZip))
+func getCfnResources(lambdaGatewayURI string, submissionZip []byte) (map[string]interface{}, error) {
+	request := LambdaRequest{File: submissionZip}
+
+	buf := &bytes.Buffer{}
+	err := json.NewEncoder(buf).Encode(request)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	resp, err := http.Post(lambdaGatewayURI, "application/json", buf)
 	if err != nil {
 		log.Println(err)
 		return nil, err
 	}
 	defer resp.Body.Close()
 
-	var resources map[string]string
+	var resources map[string]interface{}
 	err = json.NewDecoder(resp.Body).Decode(&resources)
 	if err != nil {
 		log.Println(err)
@@ -120,13 +101,13 @@ func getOpaEvaluator() (func(r *rego.Rego), error) {
 }
 
 type GradescopeTest struct {
-	Score    int    `json:"score"`
-	MaxScore int    `json:"max_score"`
-	Name     string `json:"name"`
+	Score    float64 `json:"score"`
+	MaxScore float64 `json:"max_score"`
+	Name     string  `json:"name"`
 }
 
 type GradescopeOutput struct {
-	Score int              `json:"score"`
+	Score float64          `json:"score"`
 	Tests []GradescopeTest `json:"tests"`
 }
 
@@ -166,7 +147,7 @@ func main() {
 
 	failures := results[0].Expressions[0].Value.(map[string]interface{})["violations"].([]interface{})
 	gradescopeFormattedOutput := GradescopeOutput{
-		Score: 100 - len(failures),
+		Score: 100.0 - (1.33 * float64(len(failures))),
 		Tests: make([]GradescopeTest, len(failures)),
 	}
 
@@ -175,7 +156,7 @@ func main() {
 			gradescopeFormattedOutput.Tests,
 			GradescopeTest{
 				Score:    0,
-				MaxScore: 1,
+				MaxScore: 1.33,
 				Name:     fmt.Sprintf("%v", failure),
 			},
 		)
