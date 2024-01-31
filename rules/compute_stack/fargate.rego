@@ -24,7 +24,7 @@ fail contains msg if {
 fail contains msg if {
 	defs := [def | def := input.Resources[_]; def.Type == "AWS::ECS::TaskDefinition"]
 	env := defs[_].Properties.ContainerDefinitions[_].Environment[_].Name
-	not env in ["DEBUG", "FORWARD_FACING_NAME", "PUBLIC_IMAGES_BUCKET", "PRIVATE_IMAGES_BUCKET", "PUBLIC_IMAGES_CLOUDFRONT_DISTRIBUTION", "PRIVATE_IMAGES_CLOUDFRONT_DISTRIBUTION"]
+	not env in ["PRODUCTION", "DEBUG", "FORWARD_FACING_NAME", "PUBLIC_IMAGES_BUCKET", "PRIVATE_IMAGES_BUCKET", "PUBLIC_IMAGES_CLOUDFRONT_DISTRIBUTION", "PRIVATE_IMAGES_CLOUDFRONT_DISTRIBUTION"]
 
 	msg := sprintf("Environment variables for ECS container definition are incorrect", [])
 }
