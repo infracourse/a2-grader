@@ -293,7 +293,6 @@ def main():
         TESTS[0].mark_passed()
     except Exception as e:
         TESTS[0].output = str(e)
-        finalize_grades()
 
     # create account 1
     try:

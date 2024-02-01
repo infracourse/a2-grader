@@ -186,7 +186,7 @@ func main() {
 
 	gradescopeFormattedOutput := GradescopeOutput{
 		Score: 150.0 - (2.0 * float64(len(failures))) - (60.0 - float64(runtimeResults.RuntimeGrade)),
-		Tests: make([]GradescopeTest, len(failures)+len(runtimeResults.Results)),
+		Tests: make([]GradescopeTest, 0, len(failures)+len(runtimeResults.Results)),
 	}
 
 	for _, failure := range failures {
