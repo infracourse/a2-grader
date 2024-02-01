@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"os/exec"
 
 	"github.com/go-git/go-git/v5"
 	"github.com/mholt/archiver/v4"
@@ -104,6 +105,37 @@ type GradescopeTest struct {
 	Score    float64 `json:"score"`
 	MaxScore float64 `json:"max_score"`
 	Name     string  `json:"name"`
+	Output   string  `json:"output"`
+}
+
+type RuntimeCheckOutput struct {
+	RuntimeGrade int              `json:"runtime_grade"`
+	Results      []GradescopeTest `json:"results"`
+}
+
+func doRuntimeCheck() (RuntimeCheckOutput, error) {
+	cmd := exec.Command("python3", "/autograder/runtime/grade.py")
+	if cmd.Err != nil {
+		log.Println(cmd.Err)
+		return RuntimeCheckOutput{}, cmd.Err
+	}
+
+	var stdout bytes.Buffer
+	cmd.Stdout = &stdout
+
+	if err := cmd.Run(); err != nil {
+		log.Println(err)
+		return RuntimeCheckOutput{}, err
+	}
+
+	var results RuntimeCheckOutput
+	err := json.Unmarshal(stdout.Bytes(), &results)
+	if err != nil {
+		log.Println(err)
+		return results, err
+	}
+
+	return results, nil
 }
 
 type GradescopeOutput struct {
@@ -146,9 +178,15 @@ func main() {
 	}
 
 	failures := results[0].Expressions[0].Value.(map[string]interface{})["violations"].([]interface{})
+	runtimeResults, err := doRuntimeCheck()
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
 	gradescopeFormattedOutput := GradescopeOutput{
-		Score: 100.0 - (1.33 * float64(len(failures))),
-		Tests: make([]GradescopeTest, len(failures)),
+		Score: 150.0 - (2.0 * float64(len(failures))) - (60.0 - float64(runtimeResults.RuntimeGrade)),
+		Tests: make([]GradescopeTest, len(failures)+len(runtimeResults.Results)),
 	}
 
 	for _, failure := range failures {
@@ -156,11 +194,13 @@ func main() {
 			gradescopeFormattedOutput.Tests,
 			GradescopeTest{
 				Score:    0,
-				MaxScore: 1.33,
+				MaxScore: 2.0,
 				Name:     fmt.Sprintf("%v", failure),
 			},
 		)
 	}
+
+	gradescopeFormattedOutput.Tests = append(gradescopeFormattedOutput.Tests, runtimeResults.Results...)
 
 	output, err := json.MarshalIndent(gradescopeFormattedOutput, "", "  ")
 	if err != nil {
