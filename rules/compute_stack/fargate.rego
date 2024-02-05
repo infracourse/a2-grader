@@ -23,16 +23,18 @@ fail contains msg if {
 
 fail contains msg if {
 	defs := [def | def := input.Resources[_]; def.Type == "AWS::ECS::TaskDefinition"]
-	env := defs[_].Properties.ContainerDefinitions[_].Environment[_].Name
-	not env in ["PRODUCTION", "DEBUG", "FORWARD_FACING_NAME", "PUBLIC_IMAGES_BUCKET", "PRIVATE_IMAGES_BUCKET", "PUBLIC_IMAGES_CLOUDFRONT_DISTRIBUTION", "PRIVATE_IMAGES_CLOUDFRONT_DISTRIBUTION"]
+	env := sort([env | env := defs[_].Properties.ContainerDefinitions[_].Environment[_].Name])
+	env != ["DEBUG", "FORWARD_FACING_NAME", "PRIVATE_IMAGES_BUCKET", "PRIVATE_IMAGES_CLOUDFRONT_DISTRIBUTION", "PRODUCTION", "PUBLIC_IMAGES_BUCKET", "PUBLIC_IMAGES_CLOUDFRONT_DISTRIBUTION"]
 
 	msg := sprintf("Environment variables for ECS container definition are incorrect", [])
 }
 
 fail contains msg if {
 	defs := [def | def := input.Resources[_]; def.Type == "AWS::ECS::TaskDefinition"]
-	env := defs[_].Properties.ContainerDefinitions[_].Secrets[_].Name
-	not env in ["POSTGRES_HOST", "POSTGRES_PORT", "POSTGRES_USER", "POSTGRES_PASSWORD", "POSTGRES_DB", "SECRET_KEY"]
+	containerDef := defs[_].Properties.ContainerDefinitions[_]
+	not containerDef.Secrets
+	secrets := sort([containerDef | secret := containerDef.Secrets[_].Name])
+	secrets != ["POSTGRES_DB", "POSTGRES_HOST", "POSTGRES_PASSWORD", "POSTGRES_PORT", "POSTGRES_USER", "SECRET_KEY"]
 
 	msg := sprintf("Secrets for ECS container definition are incorrect", [])
 }
