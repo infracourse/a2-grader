@@ -19,7 +19,13 @@ import (
 )
 
 func processUploadedZip(uploadedZip []byte) error {
-	err := os.MkdirAll("/tmp/submission", 0777)
+	err := os.RemoveAll("/tmp/submission")
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+
+	err = os.MkdirAll("/tmp/submission", 0777)
 	if err != nil {
 		log.Println(err)
 		return err

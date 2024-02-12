@@ -77,6 +77,10 @@ func getCfnResources(lambdaGatewayURI string, submissionZip []byte) (map[string]
 		log.Println(err)
 		return nil, err
 	}
+	if resp.StatusCode != http.StatusOK {
+		log.Println("HTTP status code", resp.StatusCode)
+		return nil, fmt.Errorf("synthesizer lambda returned HTTP status code %d", resp.StatusCode)
+	}
 	defer resp.Body.Close()
 
 	var resources map[string]interface{}
