@@ -84,7 +84,7 @@ TESTS: List[GradescopeTest] = [
         max_score=8,
     ),
     GradescopeTest(
-        "Check retrieved public post from first account is compressed", max_score=34
+        "Check retrieved public post from first account is compressed", max_score=28
     ),
 ]
 

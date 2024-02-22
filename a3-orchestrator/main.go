@@ -269,7 +269,7 @@ func main() {
 	}
 
 	gradescopeFormattedOutput := GradescopeOutput{
-		Score: 150.0 - (7.0 * float64(len(failures))) - (66.0 - float64(runtimeResults.RuntimeGrade)),
+		Score: 150.0 - (4.0 * float64(len(failures))) - (60.0 - float64(runtimeResults.RuntimeGrade)),
 		Tests: make([]GradescopeTest, 0, len(failures)+len(runtimeResults.Results)),
 	}
 
@@ -286,14 +286,15 @@ func main() {
 
 	validateTest := GradescopeTest{
 		Score:    0.0,
-		MaxScore: 30.0, // TODO
+		MaxScore: 34.0,
 		Name:     "Validate flag from Datadog",
 	}
 	if validateResult {
-		validateTest.Score = 30.0
+		validateTest.Score = 34.0
 	}
 
 	gradescopeFormattedOutput.Tests = append(gradescopeFormattedOutput.Tests, runtimeResults.Results...)
+	gradescopeFormattedOutput.Tests = append(gradescopeFormattedOutput.Tests, validateTest)
 
 	output, err := json.MarshalIndent(gradescopeFormattedOutput, "", "  ")
 	if err != nil {
