@@ -71,15 +71,20 @@ class CustomEncoder(json.JSONEncoder):
 
 
 TESTS: List[GradescopeTest] = [
-    GradescopeTest("Validate create first account still works", max_score=2),
-    GradescopeTest("Validate login to first account still works", max_score=2),
-    GradescopeTest("Validate create public post from first account still works"),
-    GradescopeTest("Validate check for public post from first account still works"),
+    GradescopeTest("Validate create first account still works", max_score=4),
+    GradescopeTest("Validate login to first account still works", max_score=4),
     GradescopeTest(
-        "Validate retrieve image for public post from first account still works"
+        "Validate create public post from first account still works", max_score=8
     ),
     GradescopeTest(
-        "Check retrieved public post from first account is compressed", max_score=20
+        "Validate check for public post from first account still works", max_score=8
+    ),
+    GradescopeTest(
+        "Validate retrieve image for public post from first account still works",
+        max_score=8,
+    ),
+    GradescopeTest(
+        "Check retrieved public post from first account is compressed", max_score=34
     ),
 ]
 

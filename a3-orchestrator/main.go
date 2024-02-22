@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"strings"
 
 	"github.com/go-git/go-git/v5"
 	"github.com/mholt/archiver/v4"
@@ -25,7 +26,7 @@ func getSunet() (string, error) {
 		return "", err
 	}
 
-	return string(contents), nil
+	return strings.TrimSpace(string(contents)), nil
 }
 
 func makeSubmissionZip() ([]byte, error) {
@@ -268,7 +269,7 @@ func main() {
 	}
 
 	gradescopeFormattedOutput := GradescopeOutput{
-		Score: 150.0 - (2.0 * float64(len(failures))) - (60.0 - float64(runtimeResults.RuntimeGrade)),
+		Score: 150.0 - (7.0 * float64(len(failures))) - (66.0 - float64(runtimeResults.RuntimeGrade)),
 		Tests: make([]GradescopeTest, 0, len(failures)+len(runtimeResults.Results)),
 	}
 
