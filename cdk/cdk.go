@@ -59,6 +59,10 @@ func GradingLambdaStack(scope constructs.Construct, id string, zone awsroute53.I
 		MemorySize:   jsii.Number(2048),
 	})
 
+	lambda.AddFunctionUrl(&awslambda.FunctionUrlOptions{
+		AuthType: awslambda.FunctionUrlAuthType_NONE,
+	})
+
 	lambda.Role().AddManagedPolicy(
 		awsiam.ManagedPolicy_FromManagedPolicyArn(
 			stack,

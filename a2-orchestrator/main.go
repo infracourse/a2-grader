@@ -15,7 +15,7 @@ import (
 	"github.com/open-policy-agent/opa/rego"
 )
 
-const LAMBDA_GATEWAY_URI = "https://grading.management.infracourse.cloud/a2-synth/"
+const LAMBDA_GATEWAY_URI = "https://5tvpsbxptgyc6m7ffmgmxvdw7m0pbmkb.lambda-url.us-east-1.on.aws/"
 
 func makeSubmissionZip() ([]byte, error) {
 	err := os.Chdir("/autograder/submission")
@@ -95,14 +95,14 @@ func getCfnResources(lambdaGatewayURI string, submissionZip []byte) (map[string]
 
 func getOpaEvaluator() (func(r *rego.Rego), error) {
 	_, err := git.PlainClone("/grader", false, &git.CloneOptions{
-		URL: "https://github.com/infracourse/a2-grader.git",
+		URL: "https://github.com/infracourse/iac-grader.git",
 	})
 	if err != nil {
 		log.Println(err)
 		return nil, err
 	}
 
-	return rego.LoadBundle("/grader/rules"), nil
+	return rego.LoadBundle("/grader/a2-rules"), nil
 }
 
 type GradescopeTest struct {
@@ -168,7 +168,7 @@ func main() {
 
 	query, err := rego.New(
 		evaluator,
-		rego.Query("data.rules.main"),
+		rego.Query("data.a2rules.main"),
 	).PrepareForEval(context.TODO())
 	if err != nil {
 		log.Println(err)

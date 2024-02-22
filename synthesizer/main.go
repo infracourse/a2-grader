@@ -95,7 +95,7 @@ func synthCDK(sdkConfig aws.Config) error {
 	}
 
 	// We don't actually care about this, it's just a convenience item
-	err = os.Setenv("SUNET", "cs40a2grader")
+	err = os.Setenv("SUNET", "management")
 	if err != nil {
 		log.Println(err)
 		return err
@@ -105,7 +105,8 @@ func synthCDK(sdkConfig aws.Config) error {
 	if cmd.Err != nil {
 		return cmd.Err
 	}
-	if err := cmd.Run(); err != nil {
+	if output, err := cmd.CombinedOutput(); err != nil {
+		log.Println(string(output))
 		log.Println(err)
 		return err
 	}

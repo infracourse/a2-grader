@@ -1,4 +1,4 @@
-module infracourse.cloud/a2-grader/orchestrator
+module infracourse.cloud/a2-grader/a3-orchestrator
 
 go 1.21.6
 
