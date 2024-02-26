@@ -168,7 +168,7 @@ func main() {
 
 	query, err := rego.New(
 		evaluator,
-		rego.Query("data.a2rules.main"),
+		rego.Query("data.rules.main"),
 	).PrepareForEval(context.TODO())
 	if err != nil {
 		log.Println(err)
