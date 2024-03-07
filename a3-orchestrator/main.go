@@ -161,7 +161,7 @@ func getSubmittedFlag() (string, error) {
 		return "", err
 	}
 
-	return string(contents), nil
+	return strings.TrimSpace(string(contents)), nil
 }
 
 type ValidateResponse struct {
@@ -268,8 +268,13 @@ func main() {
 		return
 	}
 
+	flagDeduction := 34.0
+	if validateResult {
+		flagDeduction = 0.0
+	}
+
 	gradescopeFormattedOutput := GradescopeOutput{
-		Score: 150.0 - (4.0 * float64(len(failures))) - (60.0 - float64(runtimeResults.RuntimeGrade)),
+		Score: 150.0 - (4.0 * float64(len(failures))) - (60.0 - float64(runtimeResults.RuntimeGrade)) - flagDeduction,
 		Tests: make([]GradescopeTest, 0, len(failures)+len(runtimeResults.Results)),
 	}
 
