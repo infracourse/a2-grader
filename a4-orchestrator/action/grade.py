@@ -111,7 +111,11 @@ if __name__ == "__main__":
     else:
         TESTS[3].mark_passed()
 
-    tags = steps[7]["with"]["tags"].split(",")
+    tags = re.split("\n|,", steps[7]["with"]["tags"])
+    if len(tags) > 0 and tags[0][0] == "-":
+        tags = [tag[1:] for tag in tags]
+    tags = [tag.strip() for tag in tags if tag]
+
     if (
         len(tags) != 2
         or "123456789123.dkr.ecr.us-west-2.amazonaws.com/cs40:latest" not in tags
